@@ -2,54 +2,87 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PIX Dinâmico - C6 Bank</title>
+<title>PIX – Cobrança</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
+    margin: 0;
     font-family: Arial;
-    background: #f2f2f2;
+    background: #0b0f19;
+    color: white;
     text-align: center;
-    padding: 30px;
 }
+
+.header {
+    background: #121a2f;
+    padding: 20px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.container {
+    padding: 20px;
+}
+
 input {
-    font-size: 20px;
-    padding: 10px;
-    width: 200px;
+    width: 90%;
+    font-size: 26px;
+    padding: 15px;
+    border-radius: 10px;
+    border: none;
+    text-align: center;
 }
+
 button {
-    font-size: 20px;
-    padding: 10px 20px;
-    cursor: pointer;
+    width: 90%;
+    margin-top: 15px;
+    padding: 18px;
+    font-size: 22px;
+    background: #00e676;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
 }
-#pix {
+
+#qr img {
+    margin-top: 20px;
+    width: 280px;
+    border-radius: 15px;
     background: white;
-    margin-top: 20px;
     padding: 10px;
-    word-break: break-all;
-    font-size: 14px;
 }
-#qr {
+
+#pix {
+    background: #121a2f;
     margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 12px;
+    word-break: break-all;
 }
 </style>
 </head>
 
 <body>
 
-<h2>PIX – C6 Bank</h2>
+<div class="header">
+💳 PIX – C6 Bank
+</div>
 
-<input id="valor" type="number" step="0.01" placeholder="Ex: 25.50">
-<br><br>
-<button onclick="gerarPix()">Gerar QR Code</button>
+<div class="container">
+<input id="valor" type="number" step="0.01" placeholder="Digite o valor">
+<button onclick="gerarPix()">Cobrar</button>
 
 <div id="qr"></div>
 <div id="pix"></div>
+</div>
 
 <script>
 const pixBase = "00020101021126330014br.gov.bcb.pix0111377793998695204000053039865802BR5925ZAYAN DOUX DE SOUZA OLIVE6009SAO PAULO622905251KHPGDNVGBS01VTEG5JDK7R2S6304";
 
-function gerarPix() {
+function gerarPix(){
     let v = document.getElementById("valor").value;
-    if (!v || v <= 0) {
+    if(!v || v <= 0){
         alert("Digite um valor válido");
         return;
     }
@@ -57,29 +90,28 @@ function gerarPix() {
     let valor = parseFloat(v).toFixed(2);
     let tamanho = valor.length.toString().padStart(2, "0");
 
-    let payload = pixBase.replace("5802BR", "54" + tamanho + valor + "5802BR");
+    let payload = pixBase.replace("5802BR", "54"+tamanho+valor+"5802BR");
 
     let crc = calcularCRC(payload);
     let pixFinal = payload + crc;
 
     document.getElementById("pix").innerText = pixFinal;
 
-    // Gera QR Code como imagem (nunca falha no iPhone)
     let qrURL = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent(pixFinal);
-    document.getElementById("qr").innerHTML = "<img src='" + qrURL + "'>";
+    document.getElementById("qr").innerHTML = "<img src='"+qrURL+"'>";
 }
 
-function calcularCRC(str) {
+function calcularCRC(str){
     let crc = 0xFFFF;
-    for (let i = 0; i < str.length; i++) {
-        crc ^= str.charCodeAt(i) << 8;
-        for (let j = 0; j < 8; j++) {
-            if (crc & 0x8000) crc = (crc << 1) ^ 0x1021;
-            else crc <<= 1;
-            crc &= 0xFFFF;
+    for(let i=0;i<str.length;i++){
+        crc ^= str.charCodeAt(i)<<8;
+        for(let j=0;j<8;j++){
+            if(crc & 0x8000) crc=(crc<<1)^0x1021;
+            else crc<<=1;
+            crc&=0xFFFF;
         }
     }
-    return crc.toString(16).toUpperCase().padStart(4, "0");
+    return crc.toString(16).toUpperCase().padStart(4,"0");
 }
 </script>
 
