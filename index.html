@@ -29,8 +29,16 @@ position:sticky;top:10px;z-index:10;
 #pedido div{display:flex;justify-content:space-between;}
 
 #limpar{
-width:100%;margin-top:10px;padding:16px;font-size:18px;
-background:#ff3b30;color:white;border:none;border-radius:12px;font-weight:900;
+width:50%;
+display:block;
+margin:12px auto;
+padding:14px;
+font-size:18px;
+background:#ff3b30;
+color:white;
+border:none;
+border-radius:12px;
+font-weight:900;
 }
 
 #popup{
@@ -148,11 +156,12 @@ q("popup").style.display="flex";
 function fechar(){q("popup").style.display="none";}
 
 function limparTudo(){
-document.querySelectorAll("[id^='q_']").forEach(e=>e.innerText="0");
-q("total").innerText="0.00";
-q("pedido").innerHTML="";
-q("qr").innerHTML="";
-fechar();
+    if(!confirm("Deseja apagar este pedido e iniciar um novo?")) return;
+    document.querySelectorAll("[id^='q_']").forEach(e=>e.innerText="0");
+    q("total").innerText="0.00";
+    q("pedido").innerHTML="";
+    q("qr").innerHTML="";
+    fechar();
 }
 
 function crc16(s){
