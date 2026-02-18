@@ -3,103 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <title>Pedido de Sorvetes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f2f2f7;
-    padding: 12px;
-    max-width: 480px;
-    margin: auto;
+body{
+font-family:Arial;background:#f2f2f7;padding:10px;max-width:480px;margin:auto;
 }
-h1 {
-    text-align: center;
-    font-size: 26px;
-    font-weight: 900;
+h1{text-align:center;font-size:24px;font-weight:900;}
+.cat-btn{
+width:100%;padding:14px;margin-top:10px;font-size:18px;
+border:none;border-radius:12px;background:#007aff;color:white;font-weight:800;
+position:sticky;top:10px;z-index:10;
 }
-.cat-btn {
-    width: 100%;
-    background: #007aff;
-    color: white;
-    padding: 14px;
-    font-size: 18px;
-    border: none;
-    border-radius: 12px;
-    margin-top: 12px;
-    font-weight: 800;
+.cat-btn.ativo{background:#34c759;}
+.categoria{display:none;background:white;padding:10px;border-radius:12px;}
+.item{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:10px;background:#f9f9f9;border-radius:10px;}
+.nome{font-weight:800;}
+.valor{color:#007aff;font-weight:700;}
+.btn{width:32px;height:32px;border:none;border-radius:8px;font-size:20px;font-weight:900;}
+.resumo{margin-top:15px;background:white;padding:15px;border-radius:12px;font-size:18px;font-weight:800;}
+#popup{
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,.8);display:none;justify-content:center;align-items:center;
+z-index:100;
 }
-.cat-btn.ativo { background:#34c759; }
-.categoria {
-    display: none;
-    background: white;
-    padding: 8px;
-    border-radius: 12px;
+#popupBox{
+background:white;padding:20px;border-radius:20px;text-align:center;
 }
-.item {
-    background: #f9f9f9;
-    padding: 10px;
-    margin-top: 8px;
-    border-radius: 12px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-.nome { font-weight:800; }
-.valor { color:#007aff;font-weight:700;font-size:14px; }
-.btn {
-    width:32px;
-    height:32px;
-    border:none;
-    border-radius:8px;
-    font-size:20px;
-    font-weight:900;
-}
-.resumo {
-    margin-top: 15px;
-    background:white;
-    padding:15px;
-    border-radius:12px;
-    font-weight:800;
-}
-#qr img {
-    width:280px;
-    background:white;
-    padding:10px;
-    border-radius:15px;
-    margin-top:15px;
-}
+#popupBox img{width:280px;}
+#fechar{margin-top:10px;padding:10px 20px;font-size:18px;border:none;border-radius:10px;background:#ff3b30;color:white;}
 </style>
 </head>
 
 <body>
 
 <h1>🧊 Pedido de Sorvetes</h1>
-
 <div id="conteudo"></div>
 
 <div class="resumo">
-<div>Total: R$ <span id="total">0.00</span></div>
+Total: R$ <span id="total">0.00</span>
+<button onclick="gerarPix()" style="width:100%;margin-top:10px;padding:18px;font-size:22px;background:#00e676;border:none;border-radius:12px;font-weight:900">💳 GERAR PIX</button>
+</div>
 
-<button style="width:100%;padding:18px;font-size:22px;background:#00e676;border:none;border-radius:14px;margin-top:15px;font-weight:900" onclick="gerarPix()">
-💳 GERAR PIX
-</button>
-
+<div id="popup">
+<div id="popupBox">
+<h2>Valor: R$ <span id="valorPix"></span></h2>
 <div id="qr"></div>
+<button id="fechar" onclick="fechar()">Fechar</button>
+</div>
 </div>
 
 <script>
-let precoPorCategoria = { FRUTARE:10, FRUTILLY:7.5 };
-
-let precos = {
+let precoCat={FRUTARE:10,FRUTILLY:7.5};
+let precos={
 "Clássico":20,"Branco":20,"Avelã":20,"Amêndoas":20,"Cookies & Cream":20,"Menos Açúcar":20,"Pistache":21,
 "Choco Mix":13,"Chocante":13,"Uni Cornetto":16.5,"M&Ms":16.5,"Brigadeiro Cornetto":16.5,
 "Mini Eski-bon":17,"Mini Morango":17,"Mini Chicabon":17,"Mini Doce de Leite":17,
 "Eski-bon":12,"Brigadeiro":12,"Chicabon":12,"Chicabon Menos Açúcar":12,"3 Chocolates":12.5,"Max Avelã":12.5,"Tablito":12.5,
 "Expecto":10,"Grifinória":11,"Sonserina":11
 };
-
-let categorias = {
+let categorias={
 "MAGNUM":["Clássico","Branco","Avelã","Amêndoas","Cookies & Cream","Menos Açúcar","Pistache"],
 "CORNETTO":["Choco Mix","Chocante","Uni Cornetto","M&Ms","Brigadeiro Cornetto"],
 "OS FAVORITOS":["Mini Eski-bon","Mini Morango","Mini Chicabon","Mini Doce de Leite","Eski-bon","Brigadeiro","Chicabon","Chicabon Menos Açúcar","3 Chocolates","Max Avelã","Tablito"],
@@ -108,83 +71,67 @@ let categorias = {
 "HARRY POTTER":["Expecto","Grifinória","Sonserina"]
 };
 
-let id=1;
-let total=0;
-
+let id=1,total=0,aberta=null;
 for(let c in categorias){
-    document.getElementById("conteudo").innerHTML += `<button class="cat-btn" onclick="toggle('${c}')">${c}</button><div id="cat_${c}" class="categoria"></div>`;
-    categorias[c].forEach(s=>{
-        let p = precoPorCategoria[c] ?? precos[s];
-        document.getElementById("cat_"+c).innerHTML += `
-        <div class="item">
-            <div>
-                <div class="nome">${s}</div>
-                <div class="valor">R$ ${p.toFixed(2)}</div>
-            </div>
-            <div>
-                <button class="btn" onclick="rem(${id})">-</button>
-                <span id="q_${id}">0</span>
-                <button class="btn" onclick="add(${id})">+</button>
-            </div>
-        </div>`;
-        id++;
-    });
+conteudo.innerHTML+=`<button class="cat-btn" id="btn_${c}" onclick="toggle('${c}')">${c}</button><div id="cat_${c}" class="categoria"></div>`;
+categorias[c].forEach(s=>{
+let p=precoCat[c]??precos[s];
+document.getElementById("cat_"+c).innerHTML+=`
+<div class="item">
+<div><div class="nome">${s}</div><div class="valor">R$ ${p.toFixed(2)}</div></div>
+<div><button class="btn" onclick="rem(${id})">-</button> <span id="q_${id}">0</span> <button class="btn" onclick="add(${id})">+</button></div>
+</div>`;id++;
+});
 }
 
 function toggle(c){
-    document.querySelectorAll(".categoria").forEach(e=>e.style.display="none");
-    document.getElementById("cat_"+c).style.display="block";
+document.querySelectorAll(".categoria").forEach(e=>e.style.display="none");
+document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("ativo"));
+if(aberta!==c){
+document.getElementById("cat_"+c).style.display="block";
+document.getElementById("btn_"+c).classList.add("ativo");
+aberta=c;
+}else aberta=null;
 }
 
-function add(i){
-    document.getElementById("q_"+i).innerText++;
-    calc();
-}
-function rem(i){
-    let q=document.getElementById("q_"+i);
-    if(q.innerText>0) q.innerText--;
-    calc();
-}
+function add(i){q("q_"+i).innerText++;calc();}
+function rem(i){let e=q("q_"+i);if(e.innerText>0)e.innerText--;calc();}
+function q(id){return document.getElementById(id);}
 
 function calc(){
-    let i=1;
-    total=0;
-    for(let c in categorias){
-        categorias[c].forEach(s=>{
-            let p = precoPorCategoria[c] ?? precos[s];
-            total += document.getElementById("q_"+i).innerText * p;
-            i++;
-        });
-    }
-    document.getElementById("total").innerText = total.toFixed(2);
+let i=1;total=0;
+for(let c in categorias){
+categorias[c].forEach(s=>{
+let p=precoCat[c]??precos[s];
+total+=q("q_"+i).innerText*p;i++;
+});
+}
+q("total").innerText=total.toFixed(2);
 }
 
-/* PIX C6 */
 const pixBase="00020101021126330014br.gov.bcb.pix0111377793998695204000053039865802BR5925ZAYAN DOUX DE SOUZA OLIVE6009SAO PAULO622905251KHPGDNVGBS01VTEG5JDK7R2S6304";
 
 function gerarPix(){
-    if(total<=0){ alert("Selecione itens"); return; }
-
-    let valor=total.toFixed(2);
-    let tam=valor.length.toString().padStart(2,"0");
-    let payload=pixBase.replace("5802BR","54"+tam+valor+"5802BR");
-    let crc=crc16(payload);
-    let pix=payload+crc;
-
-    document.getElementById("qr").innerHTML =
-        "<img src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="+encodeURIComponent(pix)+"'>";
+if(total<=0){alert("Selecione itens");return;}
+let valor=total.toFixed(2);
+let tam=valor.length.toString().padStart(2,"0");
+let payload=pixBase.replace("5802BR","54"+tam+valor+"5802BR");
+let crc=crc16(payload);
+let pix=payload+crc;
+q("valorPix").innerText=valor;
+q("qr").innerHTML="<img src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="+encodeURIComponent(pix)+"'>";
+q("popup").style.display="flex";
 }
-
-function crc16(str){
-    let crc=0xFFFF;
-    for(let i=0;i<str.length;i++){
-        crc^=str.charCodeAt(i)<<8;
-        for(let j=0;j<8;j++){
-            crc = (crc & 0x8000) ? (crc<<1)^0x1021 : crc<<1;
-            crc &= 0xFFFF;
-        }
-    }
-    return crc.toString(16).toUpperCase().padStart(4,"0");
+function fechar(){q("popup").style.display="none";}
+function crc16(s){
+let crc=0xFFFF;
+for(let i=0;i<s.length;i++){
+crc^=s.charCodeAt(i)<<8;
+for(let j=0;j<8;j++){
+crc=(crc&0x8000)?(crc<<1)^0x1021:crc<<1;
+crc&=0xFFFF;
+}}
+return crc.toString(16).toUpperCase().padStart(4,"0");
 }
 </script>
 
