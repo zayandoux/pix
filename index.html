@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>PIX Dinâmico - C6 Bank</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <style>
 body {
     font-family: Arial;
@@ -21,15 +20,15 @@ button {
     padding: 10px 20px;
     cursor: pointer;
 }
-#qr {
-    margin-top: 20px;
-}
 #pix {
     background: white;
     margin-top: 20px;
     padding: 10px;
     word-break: break-all;
     font-size: 14px;
+}
+#qr {
+    margin-top: 20px;
 }
 </style>
 </head>
@@ -65,10 +64,9 @@ function gerarPix() {
 
     document.getElementById("pix").innerText = pixFinal;
 
-    document.getElementById("qr").innerHTML = "";
-    QRCode.toCanvas(document.createElement("canvas"), pixFinal, { width: 300 }, function (err, canvas) {
-        document.getElementById("qr").appendChild(canvas);
-    });
+    // Gera QR Code como imagem (nunca falha no iPhone)
+    let qrURL = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent(pixFinal);
+    document.getElementById("qr").innerHTML = "<img src='" + qrURL + "'>";
 }
 
 function calcularCRC(str) {
