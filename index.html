@@ -22,6 +22,8 @@ position:sticky;top:10px;z-index:10;
 .valor{color:#007aff;font-weight:700;}
 .btn{width:32px;height:32px;border:none;border-radius:8px;font-size:20px;font-weight:900;}
 .resumo{margin-top:15px;background:white;padding:15px;border-radius:12px;font-size:18px;font-weight:800;}
+#pedido{margin-top:10px;font-size:14px;}
+#pedido div{display:flex;justify-content:space-between;}
 #popup{
 position:fixed;top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,.8);display:none;justify-content:center;align-items:center;
@@ -42,7 +44,10 @@ background:white;padding:20px;border-radius:20px;text-align:center;
 
 <div class="resumo">
 Total: R$ <span id="total">0.00</span>
+
 <button onclick="gerarPix()" style="width:100%;margin-top:10px;padding:18px;font-size:22px;background:#00e676;border:none;border-radius:12px;font-weight:900">💳 GERAR PIX</button>
+
+<div id="pedido"></div>
 </div>
 
 <div id="popup">
@@ -71,7 +76,8 @@ let categorias={
 "HARRY POTTER":["Expecto","Grifinória","Sonserina"]
 };
 
-let id=1,total=0,aberta=null;
+let id=1,total=0,aberta=null,lista=[];
+
 for(let c in categorias){
 conteudo.innerHTML+=`<button class="cat-btn" id="btn_${c}" onclick="toggle('${c}')">${c}</button><div id="cat_${c}" class="categoria"></div>`;
 categorias[c].forEach(s=>{
@@ -79,7 +85,7 @@ let p=precoCat[c]??precos[s];
 document.getElementById("cat_"+c).innerHTML+=`
 <div class="item">
 <div><div class="nome">${s}</div><div class="valor">R$ ${p.toFixed(2)}</div></div>
-<div><button class="btn" onclick="rem(${id})">-</button> <span id="q_${id}">0</span> <button class="btn" onclick="add(${id})">+</button></div>
+<div><button class="btn" onclick="rem(${id})">-</button> <span id="q_${id}">0</span> <button class="btn" onclick="add(${id},'${s}',${p})">+</button></div>
 </div>`;id++;
 });
 }
@@ -94,19 +100,33 @@ aberta=c;
 }else aberta=null;
 }
 
-function add(i){q("q_"+i).innerText++;calc();}
-function rem(i){let e=q("q_"+i);if(e.innerText>0)e.innerText--;calc();}
+function add(i,n,p){
+q("q_"+i).innerText++;
+lista.push({n,p});
+calc();
+}
+function rem(i){
+let e=q("q_"+i);
+if(e.innerText>0)e.innerText--;
+calc();
+}
+
 function q(id){return document.getElementById(id);}
 
 function calc(){
-let i=1;total=0;
+let i=1;total=0;let resumo={};
 for(let c in categorias){
 categorias[c].forEach(s=>{
 let p=precoCat[c]??precos[s];
-total+=q("q_"+i).innerText*p;i++;
+let qtd=q("q_"+i).innerText;
+if(qtd>0) resumo[s]={qtd,sub:(qtd*p)};
+total+=qtd*p;i++;
 });
 }
 q("total").innerText=total.toFixed(2);
+let txt="";
+for(let k in resumo) txt+=`<div><span>${resumo[k].qtd}x ${k}</span><span>R$ ${resumo[k].sub.toFixed(2)}</span></div>`;
+q("pedido").innerHTML=txt;
 }
 
 const pixBase="00020101021126330014br.gov.bcb.pix0111377793998695204000053039865802BR5925ZAYAN DOUX DE SOUZA OLIVE6009SAO PAULO622905251KHPGDNVGBS01VTEG5JDK7R2S6304";
